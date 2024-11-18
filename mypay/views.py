@@ -1,10 +1,13 @@
 from django.shortcuts import render
+from django.contrib.auth.decorators import login_required
+
 
 # Create your views here.
 
 from django.shortcuts import redirect
 from .models import Transaction
 
+@login_required
 def mypay(request):
     user_transactions = Transaction.objects.filter(user=request.user).order_by('-date')
     balance = sum(
@@ -19,6 +22,7 @@ def mypay(request):
     }
     return render(request, 'mypay/mypay.html', context)
 
+@login_required
 def transaksi(request):
     if request.method == 'POST':
         category = request.POST.get('category')

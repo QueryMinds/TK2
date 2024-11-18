@@ -44,7 +44,9 @@ INSTALLED_APPS = [
     'pekerjaan_jasa',
     'subkategori_layanan',
     'pemesanan_jasa',
-    'authentication'
+    'authentication',
+    'discounts',
+    'feedback'
 ]
 
 MIDDLEWARE = [

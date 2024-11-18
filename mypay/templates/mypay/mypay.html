@@ -110,7 +110,7 @@
             <h2>Riwayat Transaksi</h2>
             {% for transaction in transactions %}
                 <div class="transaction-item">
-                    <span class="nominal">{{ transaction.amount | floatformat:2 }}</span>
+                    <span class="nominal">Rp{{ transaction.amount|floatformat:2 }}</span>
                     <span>{{ transaction.date }}</span>
                     <span>{{ transaction.get_category_display }}</span>
                 </div>

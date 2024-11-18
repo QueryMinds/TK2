@@ -6,18 +6,33 @@ from django.shortcuts import redirect
 from .models import Transaction
 
 def mypay(request):
-    balance = sum(transaction.amount for transaction in Transaction.objects.all())
-    transactions = Transaction.objects.all()
-    return render(request, 'mypay/mypay.html', {'balance': balance, 'transactions': transactions})
+    user_transactions = Transaction.objects.filter(user=request.user).order_by('-date')
+    balance = sum(
+        trans.amount if trans.category in ['topup'] else -trans.amount
+        for trans in user_transactions
+    )
+
+    context = {
+        'balance': balance,
+        'transactions': user_transactions,
+        # 'phone_number': request.user.profile.phone_number  # Pastikan ada field phone_number di profile user
+    }
+    return render(request, 'mypay/mypay.html', context)
 
 def transaksi(request):
     if request.method == 'POST':
         category = request.POST.get('category')
-        amount = request.POST.get('amount')
-        description = request.POST.get('description')
-        
-        # Tambahkan transaksi baru
-        Transaction.objects.create(category=category, amount=amount, description=description)
-        return redirect('mypay:mypay')
-    
+        amount = float(request.POST.get('topupAmount', 0) or
+                       request.POST.get('transferAmount', 0) or
+                       request.POST.get('withdrawAmount', 0))
+
+        # Simpan transaksi
+        Transaction.objects.create(
+            user=request.user,
+            category=category,
+            amount=amount,
+            description=request.POST.get('description', '')  # Opsional
+        )
+        return redirect('mypay:view')
+
     return render(request, 'mypay/transaksi.html')

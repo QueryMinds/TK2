@@ -36,7 +36,7 @@
           </li>
           <li>
             <a
-              href="#"
+              href="{% url 'mypay:view' %}"
               class="block py-2 px-3 text-white bg-blue-700 rounded md:bg-transparent md:text-white md:p-0 hover:text-[#FFF100]"
               >MyPay</a
             >
@@ -59,14 +59,14 @@
           {% endif %} {% if user.is_pekerja %}
           <li>
             <a
-              href="#"
+              href="{% url 'pekerjaan_jasa:pekerjaan_jasa' %}"
               class="block py-2 px-3 text-white bg-blue-700 rounded md:bg-transparent md:text-white md:p-0 hover:text-[#FFF100]"
               >Pekerjaan</a
             >
           </li>
           <li>
             <a
-              href="#"
+              href="{% url 'pekerjaan_jasa:job-status' %}"
               class="block py-2 px-3 text-white bg-blue-700 rounded md:bg-transparent md:text-white md:p-0 hover:text-[#FFF100]"
               >Status Pekerjaan</a
             >
@@ -188,12 +188,10 @@
       >
         Pesanan
       </a>
-      <a
-        href="#"
-        class="block text-center hover:bg-blue-600 text-white font-bold py-2 px-4 rounded transition duration-300 mb-2"
-      >
+      <a href="/discounts/diskon/"> <!-- yang comment talitha soalnya bermasalah disini -->
         Diskon
-      </a>
+    </a>
+    
       {% endif %} {% if user.is_pekerja %}
       <a
         href="#"

@@ -2,99 +2,158 @@
 <!DOCTYPE html>
 <html lang="id">
 <head>
-    <br><br><br><br>
-    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>View Pemesanan Jasa</title>
     <!-- Import Google Fonts Noto Sans and Nunito -->
     <link href="https://fonts.googleapis.com/css2?family=Noto+Sans&family=Nunito:wght@400;700&display=swap" rel="stylesheet">
     <style>
-        /* Styling CSS */
         body {
             font-family: 'Nunito', sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f5f9ff;
             display: flex;
             justify-content: center;
-            margin: 20px;
-            background-color: #f5f9ff;
-            padding: 80px;
+            align-items: center;
+            min-height: 100vh;
         }
+
         .container {
-            width: 100%;
+            width: 95%;
             max-width: 1000px;
             background-color: white;
             padding: 20px;
             border-radius: 10px;
             box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            margin: 20px;
         }
+
         h2 {
             font-family: 'Noto Sans', sans-serif;
-            font-size: 32px;
+            font-size: 24px;
             text-align: center;
             color: #006BFF;
-            margin-bottom: 30px;
+            margin-bottom: 20px;
         }
+
         .filter-bar {
             display: flex;
+            flex-wrap: wrap;
             justify-content: space-between;
-            align-items: center;
-            margin-bottom: 20px;
             gap: 10px;
+            margin-bottom: 20px;
         }
+
         .filter-bar select,
         .filter-bar input[type="text"] {
             padding: 10px;
-            font-size: 16px;
+            font-size: 14px;
             border: 1px solid #ddd;
             border-radius: 20px;
-            width: 100%;
+            flex: 1 1 calc(30% - 10px); /* Responsif */
         }
+
         .filter-bar button {
-            padding: 10px 20px;
+            flex: 1 1 calc(10% - 10px);
+            padding: 10px 15px;
             background-color: #006BFF;
             color: white;
             border: none;
             border-radius: 20px;
             cursor: pointer;
+            font-size: 14px;
             font-weight: bold;
             transition: background-color 0.3s;
         }
+
         .filter-bar button:hover {
             background-color: #08C2FF;
         }
+
         table {
             width: 100%;
             border-collapse: collapse;
             margin-top: 20px;
         }
+
         table, th, td {
             border: 1px solid #ddd;
         }
+
         th, td {
-            padding: 15px;
+            padding: 12px;
             text-align: center;
-            font-size: 16px;
+            font-size: 14px;
         }
+
         th {
             background-color: #f2f2f2;
             font-weight: bold;
             color: #333;
         }
+
         .action-button {
             padding: 10px 15px;
             color: white;
             border: none;
             border-radius: 20px;
             cursor: pointer;
-            font-size: 14px;
+            font-size: 12px;
             transition: background-color 0.3s;
         }
+
         .cancel-button {
             background-color: #994329;
         }
+
         .testimonial-button {
             background-color: #2196F3;
         }
+
         .action-button:hover {
             opacity: 0.9;
+        }
+
+        @media (max-width: 768px) {
+            th, td {
+                font-size: 12px;
+                padding: 8px;
+            }
+
+            h2 {
+                font-size: 20px;
+            }
+
+            .filter-bar {
+                flex-direction: column;
+                gap: 15px;
+            }
+
+            .filter-bar select,
+            .filter-bar input[type="text"],
+            .filter-bar button {
+                flex: 1 1 100%;
+            }
+
+            .action-button {
+                font-size: 10px;
+                padding: 8px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            th, td {
+                font-size: 10px;
+                padding: 6px;
+            }
+
+            h2 {
+                font-size: 18px;
+            }
+
+            .filter-bar {
+                gap: 10px;
+            }
         }
     </style>
 </head>
@@ -131,73 +190,54 @@
         <table>
             <thead>
                 <tr>
-                    <th>Subkategori Jasa</th>
-                    <th>Sesi Layanan</th>
-                    <th>Harga</th>
-                    <th>Nama Pekerja</th>
+                    <th>Tanggal Pemesanan</th>
+                    <th>Diskon</th>
+                    <th>Total Pembayaran</th>
+                    <th>Metode Pembayaran</th>
                     <th>Status</th>
-                    <th>Aksi</th>
                 </tr>
             </thead>
-            <tbody id="tableBody">
-                <tr>
-                    <td>Subkategori Jasa 1</td>
-                    <td>Sesi Layanan 1</td>
-                    <td>Rp 100.000</td>
-                    <td>Nama Pekerja 1</td>
-                    <td>Menunggu Pembayaran</td>
-                    <td><button class="action-button cancel-button" onclick="deleteDummyRow(this)">Batalkan</button></td>
-                </tr>
-                <tr>
-                    <td>Subkategori Jasa 2</td>
-                    <td>Sesi Layanan 2</td>
-                    <td>Rp 150.000</td>
-                    <td>Nama Pekerja 2</td>
-                    <td>Pesanan Selesai</td>
-                    <td><button class="action-button testimonial-button">Buat Testimoni</button></td>
-                </tr>
-                <tr>
-                    <td>Subkategori Jasa 3</td>
-                    <td>Sesi Layanan 3</td>
-                    <td>Rp 200.000</td>
-                    <td>Nama Pekerja 3</td>
-                    <td>Sedang Diproses</td>
-                    <td></td>
-                </tr>
+            <tbody>
+                {% for pesanan in daftar_pesanan %}
+                    <tr>
+                        <td>{{ pesanan.tanggal_pemesanan }}</td>
+                        <td>{{ pesanan.diskon }}</td>
+                        <td>Rp {{ pesanan.total_pembayaran|floatformat:0 }}</td>
+                        <td>{{ pesanan.metode_pembayaran }}</td>
+                        <td>{{ pesanan.status }}</td>
+                    </tr>
+                {% empty %}
+                    <tr>
+                        <td colspan="5">Tidak ada pemesanan.</td>
+                    </tr>
+                {% endfor %}
             </tbody>
-        </table>
+        </table>        
     </div>
+
+    <script>
+        // Fungsi filter untuk subkategori, status, dan pencarian
+        function filterRows() {
+            const subkategoriFilter = document.getElementById('filterSubkategori').value.toLowerCase();
+            const statusFilter = document.getElementById('filterStatus').value.toLowerCase();
+            const searchKeyword = document.getElementById('searchInput').value.toLowerCase();
+            const rows = document.querySelectorAll('table tbody tr');
+
+            rows.forEach(row => {
+                const subkategori = row.cells[0].textContent.toLowerCase();
+                const status = row.cells[4].textContent.toLowerCase();
+                const containsKeyword = row.textContent.toLowerCase().includes(searchKeyword);
+
+                const matchesSubkategori = subkategoriFilter === "" || subkategori === subkategoriFilter;
+                const matchesStatus = statusFilter === "" || status === statusFilter;
+
+                if (matchesSubkategori && matchesStatus && containsKeyword) {
+                    row.style.display = '';
+                } else {
+                    row.style.display = 'none';
+                }
+            });
+        }
+    </script>
 </body>
 </html>
-
-<script>
-    // Fungsi untuk menghapus baris secara dinamis
-    function deleteDummyRow(button) {
-        const row = button.closest('tr');
-        row.remove();
-        alert('Pesanan berhasil dibatalkan.');
-    }
-
-    // Fungsi filter untuk subkategori, status, dan pencarian
-    function filterRows() {
-        const subkategoriFilter = document.getElementById('filterSubkategori').value.toLowerCase();
-        const statusFilter = document.getElementById('filterStatus').value.toLowerCase();
-        const searchKeyword = document.getElementById('searchInput').value.toLowerCase();
-        const rows = document.querySelectorAll('#tableBody tr');
-
-        rows.forEach(row => {
-            const subkategori = row.cells[0].textContent.toLowerCase();
-            const status = row.cells[4].textContent.toLowerCase();
-            const containsKeyword = row.textContent.toLowerCase().includes(searchKeyword);
-
-            const matchesSubkategori = subkategoriFilter === "" || subkategori === subkategoriFilter;
-            const matchesStatus = statusFilter === "" || status === statusFilter;
-
-            if (matchesSubkategori && matchesStatus && containsKeyword) {
-                row.style.display = '';
-            } else {
-                row.style.display = 'none';
-            }
-        });
-    }
-</script>

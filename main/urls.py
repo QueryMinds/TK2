@@ -10,4 +10,8 @@ urlpatterns = [
     path('subkategori/pekerja/', views.subkategori_pekerja, name='subkategori_pekerja'),
     path('subkategori/<int:subkategori_id>/', views.subkategori_detail, name='subkategori_detail'),
     path('authentication/', include('authentication.urls')),
+    path('discounts/', include('discounts.urls', namespace='discounts')),
+    path('feedback/', include('feedback.urls')),
+    path('subkategori/<int:id>/', views.subkategori_detail, name='subkategori_detail'),
+    path('not-logged-in/', views.not_logged_in, name='not_logged_in'),
 ]

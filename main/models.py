@@ -1,16 +1,21 @@
-# main/models.py
+from django.conf import settings
 from django.db import models
 
-class Kategori(models.Model):
-    nama = models.CharField(max_length=100)
-
-    def __str__(self):
-        return self.nama
-
-class Subkategori(models.Model):
-    nama = models.CharField(max_length=255)
-    kategori = models.ForeignKey(Kategori, on_delete=models.CASCADE)
-    tipe = models.CharField(max_length=50, choices=(('pengguna', 'Pengguna'), ('pekerja', 'Pekerja')))
+# class CustomUser(AbstractUser):
+#     @property
+#     def is_pengguna(self):
+#         return self.groups.filter(name='Pengguna').exists()
     
-    def __str__(self):
-        return self.nama
+#     @property
+#     def is_pekerja(self):
+#         return self.groups.filter(name='Pekerja').exists()
+
+# # Menggunakan settings.AUTH_USER_MODEL untuk mengacu pada model pengguna yang dapat dikustomisasi
+# class Profile(models.Model):
+#     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
+
+# class ServiceOrder(models.Model):
+#     assigned_worker = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True)
+
+# class TransactionHistory(models.Model):
+#     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)

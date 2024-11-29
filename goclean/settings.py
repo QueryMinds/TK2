@@ -40,9 +40,13 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'main',
+    'mypay',
+    'pekerjaan_jasa',
     'subkategori_layanan',
     'pemesanan_jasa',
-    'authentication'
+    'authentication',
+    'discounts',
+    'feedback'
 ]
 
 MIDDLEWARE = [
@@ -82,8 +86,12 @@ WSGI_APPLICATION = 'goclean.wsgi.application'
 
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
+        'ENGINE': 'django.db.backends.postgresql_psycopg2',
+        'NAME': 'postgres',
+        'USER': 'postgres.cvcodnolmjlcawbfcebn',
+        'PASSWORD': 'KYX-6ri@DN8Q.wc',
+        'HOST': 'aws-0-us-east-1.pooler.supabase.com',
+        'PORT': '5432',
     }
 }
 
@@ -135,3 +143,4 @@ MEDIA_URL="/media/"
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 AUTH_USER_MODEL = "authentication.User"
+

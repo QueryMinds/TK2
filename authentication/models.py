@@ -75,10 +75,11 @@ class User(AbstractUser):
         ('L', 'Laki-laki'),
         ('P', 'Perempuan'),
     )
-    gender = models.CharField(max_length=1, choices=GENDER_CHOICES, default='L')
+    gender = models.CharField(max_length=20, choices=GENDER_CHOICES, default='L')
     phone_number = models.CharField(max_length=20, unique=True)
     birth_date = models.DateField()
     address = models.CharField(max_length=100)
+    saldo = models.DecimalField(max_digits=10, decimal_places=2, default=0.0)
 
     USERNAME_FIELD = 'phone_number'
     REQUIRED_FIELDS = ['username', 'first_name', 'last_name', 'address', 'gender', 'birth_date']

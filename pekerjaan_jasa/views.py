@@ -1,135 +1,186 @@
-from django.shortcuts import render, redirect
-from django.http import Http404
+import psycopg2
+from django.conf import settings
+from django.shortcuts import get_object_or_404, render, redirect
 from django.contrib.auth.decorators import login_required
-from .models import ServiceCategory, ServiceOrder
-from django.http import JsonResponse
-from .models import ServiceSubcategory
-from django.core.serializers import serialize
-from django.shortcuts import get_object_or_404
-from django.urls import reverse
+from django.http import Http404, JsonResponse
 from django.contrib import messages
-from django.http import HttpResponseNotFound, JsonResponse
 
-# View untuk menampilkan job orders, termasuk form filter kategori dan subkategori
+from TK2.pekerjaan_jasa.forms import ServiceOrderForm
+
+@login_required
 def pekerjaan_jasa(request):
-    categories = ServiceCategory.objects.all()
-    selected_category = request.GET.get('category')
-    selected_subcategory = request.GET.get('subcategory')
+    try:
+        conn = psycopg2.connect(
+            dbname=settings.DATABASES['default']['NAME'],
+            user=settings.DATABASES['default']['USER'],
+            password=settings.DATABASES['default']['PASSWORD'],
+            host=settings.DATABASES['default']['HOST'],
+            port=settings.DATABASES['default']['PORT']
+        )
+        cursor = conn.cursor()
 
-    # Filter pesanan berdasarkan kategori dan subkategori jika ada
-    orders = ServiceOrder.objects.filter(status='mencari')
-    if selected_category:
-        orders = orders.filter(subcategory__category_id=selected_category)
-    if selected_subcategory:
-        orders = orders.filter(subcategory_id=selected_subcategory)
+        selected_category = request.GET.get('category')
+        selected_subcategory = request.GET.get('subcategory')
 
-    # Validasi kategori dan subkategori
-    if selected_category and not ServiceCategory.objects.filter(id=selected_category).exists():
-        selected_category = None
-    if selected_subcategory and not ServiceSubcategory.objects.filter(id=selected_subcategory).exists():
-        selected_subcategory = None
+        # Query SQL untuk mendapatkan pekerjaan yang relevan
+        query = """
+        SELECT o.id, o.tgl_pemesanan, o.total_biaya, sk.nama_subkategori AS subkategori
+        FROM pekerjaan_jasa_serviceorder o
+        JOIN pekerjaan_jasa_servicesubcategory sk ON o.subkategori_id = sk.id
+        WHERE o.status = 'mencari'
+        """
+        params = []
 
-    # Subkategori untuk dropdown
-    subcategories = ServiceSubcategory.objects.filter(category_id=selected_category) if selected_category else []
+        if selected_category:
+            query += " AND sk.kategori_id = %s"
+            params.append(selected_category)
 
-    # Kirimkan URL ke template
-    get_subcategories_url = reverse('pekerjaan_jasa:get_subcategories', kwargs={'category_id': 0}).replace('0', '%s')
+        if selected_subcategory:
+            query += " AND sk.id = %s"
+            params.append(selected_subcategory)
 
-    return render(request, 'pekerjaan_jasa/urutan_pekerjaan.html', {
-        'categories': categories,
-        'orders': orders,
-        'subcategories': subcategories,
-        'get_subcategories_url': get_subcategories_url,
-    })
+        cursor.execute(query, tuple(params))
+        orders = cursor.fetchall()
 
+        cursor.close()
+        conn.close()
 
-# View untuk status pekerjaan
-def job_status(request):
-    categories = ServiceCategory.objects.all()
-    selected_category = request.GET.get('category')
-    selected_subcategory = request.GET.get('subcategory')  # Tambahkan ini untuk mengambil subkategori yang dipilih
-
-    # Ambil pesanan dengan status 'menunggu'
-    orders = ServiceOrder.objects.exclude(status="dibatalkan")
-    if selected_category:
-        orders = orders.filter(subcategory__category_id=selected_category)
-    if selected_subcategory:  # Sekarang aman karena variabel sudah didefinisikan
-        orders = orders.filter(subcategory_id=selected_subcategory)
-
-    # Validasi kategori dan subkategori
-    if selected_category and not ServiceCategory.objects.filter(id=selected_category).exists():
-        selected_category = None
-    if selected_subcategory and not ServiceSubcategory.objects.filter(id=selected_subcategory).exists():
-        selected_subcategory = None
-
-    subcategories = ServiceSubcategory.objects.filter(category_id=selected_category) if selected_category else []
-
-    get_subcategories_url = reverse('pekerjaan_jasa:get_subcategories', kwargs={'category_id': 0}).replace('0', '%s')
-
-    return render(request, 'pekerjaan_jasa/status_pekerjaan.html', {
-        'categories': categories,
-        'subcategories': subcategories,
-        'orders': orders,
-        'get_subcategories_url': get_subcategories_url,
-    })
+        return render(request, 'pekerjaan_jasa/urutan_pekerjaan.html', {'orders': orders})
+    except Exception as e:
+        print(f"Error: {e}")
+        return JsonResponse({"error": "Terjadi kesalahan."})
 
 
-
-# View untuk memperbarui status pekerjaan
-def update_status(request, order_id, new_status):
-    # Dapatkan pesanan berdasarkan ID
-    order = get_object_or_404(ServiceOrder, id=order_id)
     
-    # Validasi transisi status
-    valid_transitions = {
-        "menunggu": "tiba",
-        "tiba": "dilakukan",
-        "dilakukan": "selesai",
-    }
+@login_required
+def job_status(request):
+    try:
+        conn = psycopg2.connect(
+            dbname=settings.DATABASES['default']['NAME'],
+            user=settings.DATABASES['default']['USER'],
+            password=settings.DATABASES['default']['PASSWORD'],
+            host=settings.DATABASES['default']['HOST'],
+            port=settings.DATABASES['default']['PORT']
+        )
+        cursor = conn.cursor()
 
-    # Cek apakah transisi valid
-    if new_status != valid_transitions.get(order.status):
-        return HttpResponseNotFound("Transisi status tidak valid.")
+        selected_category = request.GET.get('category')
+        selected_subcategory = request.GET.get('subcategory')
 
-    # Update status pesanan
-    order.status = new_status
-    order.save()
+        query = """
+        SELECT o.id, o.tgl_pemesanan, o.total_biaya, o.status, sk.nama_subkategori AS subkategori
+        FROM pekerjaan_jasa_serviceorder o
+        JOIN pekerjaan_jasa_servicesubcategory sk ON o.subkategori_id = sk.id
+        WHERE o.status != 'dibatalkan'
+        """
+        params = []
 
-    # Redirect kembali ke halaman job-status
-    return redirect('pekerjaan_jasa:job-status')
+        if selected_category:
+            query += " AND sk.kategori_id = %s"
+            params.append(selected_category)
 
-# View untuk mendapatkan subcategories berdasarkan kategori
+        if selected_subcategory:
+            query += " AND sk.id = %s"
+            params.append(selected_subcategory)
+
+        cursor.execute(query, tuple(params))
+        orders = cursor.fetchall()
+
+        cursor.close()
+        conn.close()
+
+        return render(request, 'pekerjaan_jasa/status_pekerjaan.html', {'orders': orders})
+    except Exception as e:
+        print(f"Error: {e}")
+        return JsonResponse({"error": "Terjadi kesalahan."})
+
+
+@login_required
+def update_status(request, order_id, new_status):
+    try:
+        conn = psycopg2.connect(
+            dbname=settings.DATABASES['default']['NAME'],
+            user=settings.DATABASES['default']['USER'],
+            password=settings.DATABASES['default']['PASSWORD'],
+            host=settings.DATABASES['default']['HOST'],
+            port=settings.DATABASES['default']['PORT']
+        )
+        cursor = conn.cursor()
+
+        valid_transitions = {
+            "menunggu": "tiba",
+            "tiba": "dilakukan",
+            "dilakukan": "selesai",
+        }
+
+        cursor.execute("SELECT status FROM pekerjaan_jasa_serviceorder WHERE id = %s;", (order_id,))
+        current_status = cursor.fetchone()[0]
+
+        if valid_transitions.get(current_status) != new_status:
+            return JsonResponse({"error": "Transisi status tidak valid."})
+
+        update_query = "UPDATE pekerjaan_jasa_serviceorder SET status = %s WHERE id = %s;"
+        cursor.execute(update_query, (new_status, order_id))
+        conn.commit()
+
+        cursor.close()
+        conn.close()
+
+        return JsonResponse({"success": "Status pekerjaan berhasil diperbarui."})
+    except Exception as e:
+        print(f"Error: {e}")
+        return JsonResponse({"error": "Terjadi kesalahan."})
+
+@login_required
 def get_subcategories(request, category_id):
     try:
-        # Ambil subcategories berdasarkan kategori
-        subcategories = ServiceSubcategory.objects.filter(category_id=category_id)
-        # Serialisasi data menjadi JSON-friendly format
-        subcategory_data = [{"id": sub.id, "name": sub.name} for sub in subcategories]
-        return JsonResponse(subcategory_data, safe=False)  # Kirim data sebagai JSON
-    except ServiceSubcategory.DoesNotExist:
-        return JsonResponse([], safe=False)  # Jika tidak ada subkategori, kirimkan array kosong
+        # Koneksi ke database dan menjalankan query SQL untuk mendapatkan subkategori
+        conn = psycopg2.connect(
+            dbname=settings.DATABASES['default']['NAME'],
+            user=settings.DATABASES['default']['USER'],
+            password=settings.DATABASES['default']['PASSWORD'],
+            host=settings.DATABASES['default']['HOST'],
+            port=settings.DATABASES['default']['PORT']
+        )
+        cursor = conn.cursor()
 
-def move_to_status(request, order_id):
-    order = get_object_or_404(ServiceOrder, id=order_id)
-    if order.status == 'mencari':
-        order.status = 'menunggu'
-        order.save()
-    else:
-        messages.error(request, 'Pesanan sudah dipindahkan sebelumnya!')
-    return redirect('pekerjaan_jasa:pekerjaan_jasa')
+        query = """
+        SELECT id, nama_subkategori
+        FROM pekerjaan_jasa_servicesubcategory
+        WHERE kategori_id = %s
+        """
+        cursor.execute(query, (category_id,))
+        subcategories = cursor.fetchall()
+
+        cursor.close()
+        conn.close()
+
+        # Kirimkan data subkategori dalam format JSON
+        subcategory_data = [{"id": sub[0], "name": sub[1]} for sub in subcategories]
+        return JsonResponse(subcategory_data, safe=False)
+    except Exception as e:
+        print(f"Error: {e}")
+        return JsonResponse({"error": "Terjadi kesalahan."})
 
 def accept_order(request, order_id):
     try:
-        order = ServiceOrder.objects.get(id=order_id)
-    except ServiceOrder.DoesNotExist:
+        # Mengambil pesanan berdasarkan order_id
+        order = get_object_or_404(ServiceOrderForm, id=order_id)
+    except ServiceOrderForm.DoesNotExist:
         raise Http404("Order not found")
     
-    # Pastikan hanya pekerja dengan role tertentu yang bisa menerima order
+    # Pastikan hanya pekerja yang dapat menerima pesanan
     if not request.user.is_worker:
         messages.error(request, "You are not authorized to accept orders.")
         return redirect('pekerjaan_jasa:pekerjaan_jasa')
-    
+
+    # Perbarui status dan tetapkan pekerja untuk pesanan
     order.status = 'menunggu'
     order.assigned_worker = request.user
     order.save()
+
+    # Berikan pesan sukses dan arahkan kembali ke halaman pekerjaan
+    messages.success(request, "Pesanan berhasil diterima.")
     return redirect('pekerjaan_jasa:pekerjaan_jasa')
+
+

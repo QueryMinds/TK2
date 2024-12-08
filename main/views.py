@@ -4,16 +4,7 @@ from django.shortcuts import render, redirect
 from authentication.views import get_user, login, login_required
 import logging
 logger = logging.getLogger(__name__)
-
-# Fungsi untuk mendapatkan koneksi database PostgreSQL
-def get_db_connection():
-    return psycopg2.connect(
-        dbname=settings.DATABASES['default']['NAME'],
-        user=settings.DATABASES['default']['USER'],
-        password=settings.DATABASES['default']['PASSWORD'],
-        host=settings.DATABASES['default']['HOST'],
-        port=settings.DATABASES['default']['PORT']
-    )
+from django.contrib.auth.decorators import login_required
 
 @login_required
 def homepage(request):

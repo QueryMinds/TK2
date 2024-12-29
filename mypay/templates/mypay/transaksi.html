@@ -4,180 +4,233 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <title>MyPay - Transaksi</title>
-    <link href="https://fonts.googleapis.com/css2?family=Nunito+Rounded:wght@400;700&display=swap" rel="stylesheet">
-    <style>
-        /* Global styles */
-        body {
-            font-family: 'Nunito Rounded', sans-serif;
-            background-color: #FFFFFF;
-            color: #333;
-            margin: 0;
-            padding: 0;
-        }
+   <meta charset="UTF-8">
+   <title>MyPay - Transaksi</title>
+   <link href="https://fonts.googleapis.com/css2?family=Nunito+Rounded:wght@400;700&display=swap" rel="stylesheet">
+   <style>
+       body {
+           font-family: 'Nunito Rounded', sans-serif;
+           background-color: #FFFFFF;
+           color: #333;
+           margin: 0;
+           padding: 0;
+       }
 
-        /* Form container styles */
-        .form-container {
-            width: 60%;
-            margin: 0 auto;
-            padding: 40px 20px;
-            background-color: #FFF;
-            box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.1);
-            border-radius: 10px;
-            margin-top: 90px;
-        }
+       .form-container {
+           width: 60%;
+           margin: 0 auto;
+           padding: 40px 20px;
+           background-color: #FFF;
+           box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.1);
+           border-radius: 10px;
+           margin-top: 90px;
+       }
 
-        /* Title inside the box */
-        .form-container h1 {
-            color: #000000;
-            text-align: center;
-            font-size: 2em;
-            margin-bottom: 30px;
-            font-weight: 500;
-        }
+       .form-container h1 {
+           color: #000000;
+           text-align: center;
+           font-size: 2em;
+           margin-bottom: 30px;
+           font-weight: 500;
+       }
 
-        /* Form styles */
-        form {
-            padding: 20px;
-        }
+       .alert {
+           padding: 15px;
+           margin-bottom: 20px;
+           border: 1px solid transparent;
+           border-radius: 4px;
+       }
 
-        /* Label styles */
-        label {
-            font-weight: 700;
-            margin-bottom: 8px;
-            display: block;
-            color: #333;
-        }
+       .alert-danger {
+           color: #721c24;
+           background-color: #f8d7da;
+           border-color: #f5c6cb;
+       }
 
-        /* Select and input field styles */
-        select, input[type="number"], input[type="text"] {
-            width: 100%;
-            padding: 10px;
-            border: 2px solid #006BFF;
-            border-radius: 8px;
-            margin-bottom: 20px;
-            font-size: 1em;
-        }
+       form {
+           padding: 20px;
+       }
 
-        input[type="number"]:focus, input[type="text"]:focus, select:focus {
-            border-color: #08C2FF; 
-            outline: none;
-        }
+       label {
+           font-weight: 700;
+           margin-bottom: 8px;
+           display: block;
+           color: #333;
+       }
 
-        /* Button styles */
-        button[type="submit"] {
-            background-color: #FFF100;
-            color: #333;
-            font-weight: bold;
-            padding: 12px 20px;
-            border: none;
-            border-radius: 8px;
-            cursor: pointer;
-            transition: background-color 0.3s;
-        }
+       select, input[type="number"], input[type="text"] {
+           width: 100%;
+           padding: 10px;
+           border: 2px solid #006BFF;
+           border-radius: 8px;
+           margin-bottom: 20px;
+           font-size: 1em;
+       }
 
-        button[type="submit"]:hover {
-            background-color: #08C2FF;
-        }
+       input[type="number"]:focus, input[type="text"]:focus, select:focus {
+           border-color: #08C2FF; 
+           outline: none;
+       }
 
-        /* Section visibility */
-        #topupFields, #jasaFields, #transferFields, #withdrawFields {
-            display: none;
-        }
-    </style>
+       button[type="submit"] {
+           background-color: #FFF100;
+           color: #333;
+           font-weight: bold;
+           padding: 12px 20px;
+           border: none;
+           border-radius: 8px;
+           cursor: pointer;
+           transition: background-color 0.3s;
+           width: 100%;
+       }
+
+       button[type="submit"]:hover {
+           background-color: #08C2FF;
+       }
+
+       #topupFields, #transferFields {
+           display: none;
+       }
+
+       .snackbar {
+           visibility: hidden;
+           min-width: 250px;
+           background-color: #4CAF50;
+           color: #fff;
+           text-align: center;
+           border-radius: 8px;
+           padding: 16px;
+           position: fixed;
+           z-index: 1;
+           bottom: 30px;
+           left: 50%;
+           transform: translateX(-50%);
+       }
+
+       .snackbar.show {
+           visibility: visible;
+           animation: fadein 0.5s, fadeout 0.5s 2.5s;
+       }
+
+       @keyframes fadein {
+           from {bottom: 0; opacity: 0;}
+           to {bottom: 30px; opacity: 1;}
+       }
+
+       @keyframes fadeout {
+           from {bottom: 30px; opacity: 1;}
+           to {bottom: 0; opacity: 0;}
+       }
+   </style>
 </head>
 <body>
-    
-    <div class="form-container">
-        <h1>Form Transaksi MyPay</h1>
-        <!-- Hanya satu form yang digunakan -->
-        <form method="post" action="{% url 'mypay:transaksi' %}">
-            {% csrf_token %}
-            <label for="category">Kategori Transaksi</label>
-            <select name="category" id="category" onchange="updateFormState()" required>
-                <option value="topup" {% if request.POST.category == 'topup' %}selected{% endif %}>Top Up MyPay</option>
-                <option value="jasa" {% if request.POST.category == 'jasa' %}selected{% endif %}>Bayar Jasa</option>
-                <option value="transfer" {% if request.POST.category == 'transfer' %}selected{% endif %}>Transfer MyPay</option>
-                <option value="withdrawal" {% if request.POST.category == 'withdrawal' %}selected{% endif %}>Withdrawal</option>
-            </select>
+   <div class="form-container">
+       <h1>Form Transaksi MyPay</h1>
+       
+       {% if error %}
+       <div class="alert alert-danger">
+           {{ error }}
+       </div>
+       {% endif %}
 
-            <!-- Bagian Top Up -->
-            <div id="topupFields" style="display:none;">
-                <label for="topupAmount">Nominal Top Up</label>
-                <input type="number" name="amount" id="topupAmount" value="{{ request.POST.amount }}" required>
-                <input type="hidden" name="description" value="Top Up MyPay">
-            </div>
-            
-            <!-- Bagian Jasa -->
-            <div id="jasaFields" style="display:none;">
-                <label for="service">Pilih Jasa</label>
-                <select name="description" id="service" required>
-                    <option value="Setrika" {% if request.POST.description == 'Setrika' %}selected{% endif %}>Setrika</option>
-                    <option value="Home Cleaning" {% if request.POST.description == 'Home Cleaning' %}selected{% endif %}>Home Cleaning</option>
-                    <option value="Big Size Car Wash" {% if request.POST.description == 'Big Size Car Wash' %}selected{% endif %}>Big Size Car Wash</option>
-                </select>
-
-                <label for="jasaPrice">Harga</label>
-                <span id="jasaPrice">Rp 100000</span> <!-- Harga ditentukan untuk setiap jasa, bisa diprogram lebih dinamis -->
-                <input type="hidden" name="amount" value="100000"> <!-- Harga tetap, bisa disesuaikan berdasarkan pilihan -->
-
-                <button type="submit">Kirim</button>
-            </div>
-    
-            <!-- Bagian Transfer -->
-            <div id="transferFields" style="display:none;">
-                <label for="phoneNumber">Nomor HP Tujuan</label>
-                <input type="text" name="description" id="phoneNumber" value="{{ request.POST.description }}" required>
-                <label for="transferAmount">Nominal Transfer</label>
-                <input type="number" name="amount" id="transferAmount" value="{{ request.POST.amount }}" required>
-            </div>
-
-            <!-- Bagian Withdrawal -->
-            <div id="withdrawFields" style="display:none;">
-                <label for="bank">Pilih Bank</label>
-                <select name="description" id="bank">
-                    <option value="BCA">BCA</option>
-                    <option value="Mandiri">Mandiri</option>
-                    <option value="Bank Jago">Bank Jago</option>
-                </select>
-                <label for="withdrawAmount">Nominal Withdraw</label>
-                <input type="number" name="amount" id="withdrawAmount" value="{{ request.POST.amount }}" required>
-            </div>
-
-            <button type="submit">Kirim</button>
-        </form>
+       <form method="POST" action="{% url 'mypay:transaksi' %}">
+           {% csrf_token %}
+           <label for="category">Kategori Transaksi</label>
+           <select name="category" id="category" onchange="updateFormState()" required>
+            <option value="TopUp">Top Up MyPay</option>
+            <option value="Transfer">Transfer MyPay</option>
+            <option value="Bayar Jasa">Bayar Jasa</option>
+            <option value="Withdrawal">Penarikan Saldo</option>
+        </select>
+        
+        <div id="topupFields">
+            <label for="topupAmount">Nominal Top Up</label>
+            <input type="number" name="amount_topup" id="topupAmount" min="10000" step="1000">
         </div>
+        
+        <div id="jasaFields">
+            <label for="service">Pilih Jasa</label>
+            <select name="description" id="service">
+                <option value="Setrika">Setrika</option>
+                <option value="Home Cleaning">Home Cleaning</option>
+                <option value="Big Size Car Wash">Big Size Car Wash</option>
+            </select>
+            <label for="jasaAmount">Nominal Pembayaran</label>
+            <span id="jasaPrice">Rp 150000</span>
+        </div>
+        
+        <div id="transferFields">
+            <label for="phoneNumber">Nomor HP Tujuan</label>
+            <input type="text" name="description" id="phoneNumber">
+            <label for="transferAmount">Nominal Transfer</label>
+            <input type="number" name="amount" id="transferAmount" min="10000" step="1000">
+        </div>
+        
+        <div id="withdrawFields">
+            <label for="bank">Pilih Bank</label>
+            <select name="description" id="bank">
+                <option value="BCA">BCA</option>
+                <option value="Mandiri">Mandiri</option>
+                <option value="Bank Jago">Bank Jago</option>
+            </select>
+            <label for="withdrawAmount">Nominal Penarikan</label>
+            <input type="number" name="amount" id="withdrawAmount" min="10000" step="1000">
+        </div>
+   
+           <button type="submit">Kirim</button>
+       </form>
+   </div>
 
-        <script>
-        function updateFormState() {
-            var category = document.getElementById("category").value;
-            
-            // Sembunyikan semua div terlebih dahulu
-            document.getElementById("topupFields").style.display = "none";
-            document.getElementById("jasaFields").style.display = "none";
-            document.getElementById("transferFields").style.display = "none";
-            document.getElementById("withdrawFields").style.display = "none";
-            
-            // Tampilkan form sesuai kategori
-            if (category == "topup") {
-                document.getElementById("topupFields").style.display = "block";
-            } else if (category == "jasa") {
-                document.getElementById("jasaFields").style.display = "block";
-            } else if (category == "transfer") {
-                document.getElementById("transferFields").style.display = "block";
-            } else if (category == "withdrawal") {
-                document.getElementById("withdrawFields").style.display = "block";
-            }
+   <div id="snackbar" class="snackbar"></div>
+   
+   <script>
+       function updateFormState() {
+        const category = document.getElementById("category").value;
+        const topupFields = document.getElementById("topupFields");
+        const jasaFields = document.getElementById("jasaFields");
+        const transferFields = document.getElementById("transferFields");
+        const withdrawFields = document.getElementById("withdrawFields");
+
+        // Hide all fields first
+        topupFields.style.display = "none";
+        jasaFields.style.display = "none";
+        transferFields.style.display = "none";
+        withdrawFields.style.display = "none";
+
+        // Show fields based on category
+        switch(category) {
+            case "TopUp":
+                topupFields.style.display = "block";
+                break;
+            case "Bayar Jasa":
+                jasaFields.style.display = "block";
+                break;
+            case "Transfer":
+                transferFields.style.display = "block";
+                break;
+            case "Withdrawal":
+                withdrawFields.style.display = "block";
+                break;
         }
+    }
 
+       function showSnackbar(message) {
+           const snackbar = document.getElementById("snackbar");
+           snackbar.textContent = message;
+           snackbar.className = "snackbar show";
+           setTimeout(() => {
+               snackbar.className = snackbar.className.replace("show", "");
+           }, 3000);
+       }
 
-        // Memastikan form dimuat dengan kategori yang sudah dipilih
-        window.onload = function() {
-            updateFormState();
-        };
-        </script>
-    </body>
+       document.addEventListener('DOMContentLoaded', function() {
+           updateFormState();
+           
+           const urlParams = new URLSearchParams(window.location.search);
+           if (urlParams.get('success')) {
+               showSnackbar("Saldo berhasil diupdate!");
+           }
+       });
+   </script>
+</body>
 </html>
-
-
